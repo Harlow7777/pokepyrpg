@@ -7,6 +7,8 @@ class Enemy(pygame.sprite.Sprite):
     def __init__(self, game, name, x, y):
         #TODO: implement enemy stats
         self.agl = 1
+        self.current_health = 50
+        self.health_capacity = 100
         self.game = game
         self.name = name
         self._layer = ENEMY_LAYER

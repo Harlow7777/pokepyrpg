@@ -11,6 +11,8 @@ class Pokemon:
         self.base_stats = job.get_base_stats()  # Dict of base stats
         self.stats = self.base_stats
         self.agl = self.stats['AGL']
+        self.current_health = self.stats['HP']
+        self.health_capacity = self.stats['HP']
 
         self.width = width
         self.height = height

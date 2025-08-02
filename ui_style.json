@@ -1,0 +1,76 @@
+{
+  "defaults":
+  {
+    "font":
+    {
+      "name": "Arcade Classic",
+      "size": 32,
+      "regular_path": "ARCADECLASSIC.TTF"
+    }
+  },
+  "button":
+  {
+    "colours":
+         {
+             "normal_border": "White",
+             "normal_bg": "SlateGray",
+             "normal_text": "White"
+         },
+    "font":
+        {
+          "name": "Arcade Classic",
+          "size": 32,
+          "regular_path": "ARCADECLASSIC.TTF"
+        },
+    "misc":
+         {
+             "shape": "rounded_rectangle",
+             "shape_corner_radius": "10",
+             "border_width": "2"
+         }
+  },
+  "label":
+  {
+    "font":
+    {
+      "name": "Arcade Classic",
+      "size": 32,
+      "regular_path": "ARCADECLASSIC.TTF"
+    }
+  },
+  "screen_space_health_bar":
+  {
+    "colours":
+    {
+      "normal_text": "White"
+    }
+  },
+  "#highlighted_text":
+  {
+    "colours":
+    {
+      "normal_text": "Yellow"
+    }
+  },
+  "#green_bar":
+  {
+    "colours":
+    {
+      "filled_bar": "Green"
+    }
+  },
+  "#yellow_bar":
+  {
+    "colours":
+    {
+      "filled_bar": "Yellow"
+    }
+  },
+  "#red_bar":
+  {
+    "colours":
+    {
+      "filled_bar": "Red"
+    }
+  }
+}

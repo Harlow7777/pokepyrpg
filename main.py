@@ -1,5 +1,6 @@
 import sys
 import pygame
+import pygame_gui
 
 from pokemon.party import Party
 from pokemon.pokemon import Pokemon
@@ -15,9 +16,12 @@ class Game:
         pygame.display.set_caption("Pokepy RPG")
 
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.background = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.clock = pygame.time.Clock() # frame rate
         self.running = True
         self.font = pygame.font.Font('ARCADECLASSIC.TTF', 32)
+
+        self.manager = pygame_gui.UIManager((SCREEN_WIDTH, SCREEN_HEIGHT), theme_path="ui_style.json")
 
         self.character_spritesheet = Spritesheet('img/character_spritesheet.png')
         self.terrain_spritesheet = Spritesheet('img/terrain.png')
@@ -55,8 +59,8 @@ class Game:
         self.create_tilemap()
 
         self.party = Party()
-        self.party.add_pokemon(Pokemon('bulbasaur', 28, 30, 35, 33, JobEnum.WARRIOR.value, None, None))
-        self.party.add_pokemon(Pokemon('charmander', 318, 29, 38, 42, JobEnum.THIEF.value, None, None))
+        self.party.add_pokemon(Pokemon('Bulbasaur', 28, 30, 35, 33, JobEnum.WARRIOR.value, None, None))
+        self.party.add_pokemon(Pokemon('Charmander', 318, 29, 38, 42, JobEnum.THIEF.value, None, None))
 
     def events(self):
         # game loop events(key presses, etc.)
@@ -104,54 +108,68 @@ class Game:
         text = self.font.render('Game Over', False, WHITE)
         text_rect = text.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2))
 
-        restart_button = Button(10, SCREEN_HEIGHT - 60, 120, 50, WHITE, BLACK, 'Restart', self.font)
+        restart_button = pygame_gui.elements.UIButton(relative_rect=text_rect,
+                                                   text='Restart',
+                                                   manager=self.manager)
 
         # clear screen of sprites
         for sprite in self.all_sprites:
             sprite.kill()
 
         while self.running:
+            time_delta = self.clock.tick(FPS) / 1000.0
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
 
-            mouse_pos = pygame.mouse.get_pos()
-            mouse_pressed = pygame.mouse.get_pressed()
+                if event.type == pygame_gui.UI_BUTTON_PRESSED:
+                    if event.ui_element == restart_button:
+                        self.new()
+                        self.main()
 
-            if restart_button.is_pressed(mouse_pos, mouse_pressed):
-                self.new()
-                self.main()
+                self.manager.process_events(event)
+
+            self.manager.update(time_delta)
 
             self.screen.blit(self.gameover_background, (0, 0))
             self.screen.blit(text, text_rect)
-            self.screen.blit(restart_button.image, restart_button.rect)
+            self.manager.draw_ui(self.screen)
             self.clock.tick(FPS)
             pygame.display.update()
 
     def intro_screen(self):
         intro = True
+        self.manager.clear_and_reset()
 
         title = self.font.render('Pokepy RPG', False, BLACK)
-        title_rect = title.get_rect(x=10, y=10)
+        title_rect = title.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/4))
 
-        play_button = Button(10, 50, 100, 50, WHITE, BLACK, 'Play', self.font)
+        play_button_rect = pygame.Rect(0, 0, 200 ,50)
+        play_button_rect.center = (SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 50)
+        play_button = pygame_gui.elements.UIButton(relative_rect=play_button_rect,
+                                                    text='Play',
+                                                    manager=self.manager)
 
         while intro:
+            time_delta = self.clock.tick(FPS)/1000.0
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     intro = False
                     self.running = False
 
-            mouse_pos = pygame.mouse.get_pos()
-            mouse_pressed = pygame.mouse.get_pressed()
+                if event.type == pygame_gui.UI_BUTTON_PRESSED:
+                    if event.ui_element == play_button:
+                        intro = False
 
-            if play_button.is_pressed(mouse_pos, mouse_pressed):
-                intro = False
+                self.manager.process_events(event)
+
+            self.manager.update(time_delta)
 
             self.screen.blit(self.intro_background, (0, 0))
             self.screen.blit(title, title_rect)
-            self.screen.blit(play_button.image, play_button.rect)
-            self.clock.tick(FPS)
+            self.manager.draw_ui(self.screen)
             pygame.display.update()
 
 g = Game()
