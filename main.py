@@ -106,16 +106,16 @@ class Game:
         pass
 
     def game_over(self):
-        text = self.font.render('Game Over', False, WHITE)
-        text_rect = text.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2))
+        self.manager.clear_and_reset()
 
-        restart_button = pygame_gui.elements.UIButton(relative_rect=text_rect,
+        text = self.font.render('Game Over', False, WHITE)
+        text_rect = text.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/4))
+
+        restart_button_rect = pygame.Rect(0, 0, 200, 50)
+        restart_button_rect.center = (SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 50)
+        restart_button = pygame_gui.elements.UIButton(relative_rect=restart_button_rect,
                                                    text='Restart',
                                                    manager=self.manager)
-
-        # clear screen of sprites
-        for sprite in self.all_sprites:
-            sprite.kill()
 
         while self.running:
             time_delta = self.clock.tick(FPS) / 1000.0

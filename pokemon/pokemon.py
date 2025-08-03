@@ -16,6 +16,7 @@ class Pokemon:
         self.lck = self.stats['LCK']
         self.str = self.stats['STR']
         self.lvl = 1
+        self.crit = 0 if self.job.name != 'Monk' else self.lvl * 2 # determined by weapon
         self.current_health = self.stats['HP']
         self.health_capacity = self.stats['HP']
 

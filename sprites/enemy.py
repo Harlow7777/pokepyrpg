@@ -13,7 +13,8 @@ class Enemy(pygame.sprite.Sprite):
         self.acc = self.stats['ACC']
         self.eva = self.stats['EVA']
         self.lck = self.stats['LCK']
-        self.str = self.stats['STR']
+        self.str = 1000
+        self.crit = 0
         self.lvl = lvl
         self.current_health = self.stats['HP']
         self.health_capacity = self.stats['HP']

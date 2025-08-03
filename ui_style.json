@@ -45,6 +45,13 @@
       "normal_text": "White"
     }
   },
+  "#gray_text":
+  {
+    "colours":
+    {
+      "normal_text": "Gray"
+    }
+  },
   "#highlighted_text":
   {
     "colours":
@@ -78,6 +85,14 @@
     "colours":
     {
       "filled_bar": "Red"
+    }
+  },
+  "#gray_bar":
+  {
+    "colours":
+    {
+      "filled_bar": "DimGray",
+      "normal_bg": "DarkGray"
     }
   }
 }

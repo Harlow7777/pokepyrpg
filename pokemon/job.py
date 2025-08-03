@@ -10,7 +10,7 @@ class Job:
         self.int = int_
         self.lck = lck
         self.acc_growth = acc_growth
-        self.mdef = mdef,
+        self.mdef = mdef
         self.mdef_growth = mdef_growth
 
     def get_base_stats(self):
