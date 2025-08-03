@@ -11,6 +11,11 @@ class Pokemon:
         self.base_stats = job.get_base_stats()  # Dict of base stats
         self.stats = self.base_stats
         self.agl = self.stats['AGL']
+        self.acc = self.stats['ACC']
+        self.eva = self.stats['EVA']
+        self.lck = self.stats['LCK']
+        self.str = self.stats['STR']
+        self.lvl = 1
         self.current_health = self.stats['HP']
         self.health_capacity = self.stats['HP']
 
@@ -18,4 +23,10 @@ class Pokemon:
         self.height = height
         self.enemy_spritesheet = Spritesheet('img/pokemon_spritesheet.png')
         self.image = self.enemy_spritesheet.get_sprite(x, y, self.width, self.height, BLACK)
+
+    def get_number_of_attacks(self):
+        num_attacks = max(self.acc // 32, 1)
+        if self.job.name == 'Monk':
+            num_attacks *= 2
+        return num_attacks
 

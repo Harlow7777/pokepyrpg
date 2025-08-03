@@ -43,7 +43,8 @@ class Game:
                 if column == 'B':
                     Block(self, col_index, row_index)
                 if column == 'E':
-                    Enemy(self, 'Enemy', col_index, row_index)
+                    # TODO: implement randomized enemy generation
+                    Enemy(self, 'Enemy', 1, JobEnum.WARRIOR.value, col_index, row_index)
                 if column == 'P':
                     Player(self, col_index, row_index)
 

@@ -52,6 +52,13 @@
       "normal_text": "Yellow"
     }
   },
+  "#red_highlighted_text":
+  {
+    "colours":
+    {
+      "normal_text": "Red"
+    }
+  },
   "#green_bar":
   {
     "colours":

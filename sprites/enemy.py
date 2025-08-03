@@ -4,11 +4,19 @@ import random
 from config import *
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, game, name, x, y):
-        #TODO: implement enemy stats
-        self.agl = 1
-        self.current_health = 50
-        self.health_capacity = 100
+    def __init__(self, game, name, lvl, job, x, y):
+        self.job = job            # Instance of Job
+        self.base_stats = job.get_base_stats()  # Dict of base stats
+        self.stats = self.base_stats
+
+        self.agl = self.stats['AGL']
+        self.acc = self.stats['ACC']
+        self.eva = self.stats['EVA']
+        self.lck = self.stats['LCK']
+        self.str = self.stats['STR']
+        self.lvl = lvl
+        self.current_health = self.stats['HP']
+        self.health_capacity = self.stats['HP']
         self.game = game
         self.name = name
         self._layer = ENEMY_LAYER
@@ -41,6 +49,9 @@ class Enemy(pygame.sprite.Sprite):
         self.right_animations = [self.game.enemy_spritesheet.get_sprite(3, 66, self.width, self.height, BLACK),
                             self.game.enemy_spritesheet.get_sprite(35, 66, self.width, self.height, BLACK),
                             self.game.enemy_spritesheet.get_sprite(68, 66, self.width, self.height, BLACK)]
+
+    def get_number_of_attacks(self):
+        return 1
 
     def update(self):
         self.movement()

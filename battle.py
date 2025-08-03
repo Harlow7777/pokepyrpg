@@ -25,8 +25,18 @@ class Battle:
         self.active_battler = self.turn_order[self.current_turn_index]
         self.running = True
 
+        self.state = 'action_select' # action_select target_select or enemy_turn
+        self.target = None
+
         # Build the UI
         self._build_ui()
+
+        self.enemy_turn_timer = 0
+
+        # Ensure enemy starts if they win initiative
+        if self.active_battler == self.enemy:
+            self.state = "enemy_turn"
+            self.enemy_turn_timer = 1000
 
     def _build_ui(self):
         # Panel for battle menu
@@ -110,8 +120,6 @@ class Battle:
         self.update_name_highlight()
 
     def update_name_highlight(self):
-        highlight_color = "#FFFF00"  # Yellow
-
         # Enemy highlight
         if self.active_battler == self.enemy:
             self.enemy_label.change_object_id('#highlighted_text')
@@ -129,6 +137,66 @@ class Battle:
         self.current_turn_index = (self.current_turn_index + 1) % len(self.turn_order)
         self.active_battler = self.turn_order[self.current_turn_index]
         self.update_name_highlight()  # Refresh highlight each turn
+        if self.active_battler == self.enemy:
+            self.state = "enemy_turn"
+            self.pick_enemy_target()
+            self.enemy_turn_timer = 1000
+        else:
+            self.state = "action_select"
+
+    def pick_enemy_target(self):
+        """Choose a target for the enemy and highlight them."""
+        if not self.party.members:
+            return
+
+        weights = [0.5, 0.25, 0.125, 0.125]
+        available_targets = self.party.members[:4]
+        weights = weights[:len(available_targets)]
+        total = sum(weights)
+        norm_weights = [w / total for w in weights]
+
+        target = random.choices(available_targets, weights=norm_weights, k=1)[0]
+        self.target = target
+
+        print(f"{self.enemy.name} prepares to attack {target.name}!")
+
+        # Highlight the chosen target's label
+        for i, pokemon in enumerate(self.party.members):
+            if pokemon == target:
+                self.party_labels[i].change_object_id('#red_highlighted_text')
+
+    def start_target_select(self):
+        """Switch to target selection UI for the player."""
+        self.state = 'target_select'
+        self.target = self.enemy
+
+        # Highlight enemy name in red
+        self.enemy_label.change_object_id('#red_highlighted_text')
+        print(f"{self.active_battler.name} is targeting {self.enemy.name} - Press Enter to confirm.")
+
+    def perform_attack(self):
+        """Resolve an attack on the chosen target."""
+        if not self.target:
+            return
+
+        num_attacks = self.active_battler.get_number_of_attacks()
+        for i in range(num_attacks):
+            #TODO: animate attacks
+            hit_rate = 168
+            hit = random.randint(0, 200) <= min(hit_rate + self.active_battler.acc, 255) - self.target.eva
+            if hit:
+                print(f"{self.active_battler.name} hit {self.target.name}!")
+                dmg = self.active_battler.str / 2
+                self.target.current_health -= dmg
+            else:
+                print(f"{self.active_battler.name} missed {self.target.name}!")
+
+        # Clear highlights from all labels
+        for lbl in self.party_labels:
+            lbl.change_object_id('')
+        self.enemy_label.change_object_id('')
+
+        self.target = None
 
     def draw_battle_screen(self):
         self.update_health_bar_colors()
@@ -168,32 +236,52 @@ class Battle:
             set_bar_color(self.party_health_bars[i])
 
     def handle_button_press(self, button):
-        if button == self.attack_button:
-            print(f"{self.active_battler.name} chose Attack")
-        elif button == self.item_button:
-            print(f"{self.active_battler.name} chose Item")
-        elif button == self.equip_button:
-            print(f"{self.active_battler.name} chose Equip")
-        elif button == self.run_button:
-            print(f"{self.active_battler.name} ran from battle")
-            self.running = False
-            return
-
-        self.next_turn()
+        if self.state == 'action_select':
+            if button == self.attack_button:
+                self.start_target_select()
+            elif button == self.item_button:
+                print(f"{self.active_battler.name} chose Item")
+                self.next_turn()
+            elif button == self.equip_button:
+                print(f"{self.active_battler.name} chose Equip")
+                self.next_turn()
+            elif button == self.run_button:
+                # if self.active_battler.lck > self.active_battler.lvl + 15:
+                if True:
+                    print(f"{self.active_battler.name} ran from battle")
+                    self.running = False
+                else:
+                    print(f"{self.active_battler.name} failed to run from battle")
+                    self.next_turn()
+        else:
+            self.next_turn()
 
     def run(self):
         while self.running:
             time_delta = self.game.clock.tick(FPS) / 1000.0
+            ms_delta = time_delta * 1000
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.game.running = False
                     self.running = False
 
+                elif event.type == pygame.KEYDOWN and self.state == 'target_select':
+                    if event.key == pygame.K_RETURN:
+                        self.perform_attack()
+                        self.next_turn()
+
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
                     self.handle_button_press(event.ui_element)
 
                 self.manager.process_events(event)
+
+            # Handle delayed enemy turn
+            if self.state == "enemy_turn" and self.enemy_turn_timer > 0:
+                self.enemy_turn_timer -= ms_delta
+                if self.enemy_turn_timer <= 0:
+                    self.perform_attack()
+                    self.next_turn()
 
             self.manager.update(time_delta)
             self.draw_battle_screen()
