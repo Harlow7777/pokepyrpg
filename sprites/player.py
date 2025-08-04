@@ -3,9 +3,11 @@ import pygame
 
 from battle import Battle
 from config import *
+from logger_config import logger
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
+        self.log = logger.getChild(__name__)
 
         self.game = game
         self._layer = PLAYER_LAYER
@@ -104,7 +106,7 @@ class Player(pygame.sprite.Sprite):
             battle = Battle(self.game, enemy, self.game.party)
             result = battle.run()
             battle.cleanup()
-            print("Battle result " + str(result))
+            self.log.debug("Battle result " + str(result))
             if result == "victory":
                 # Survived — go back to map and remove enemy sprite
                 enemy.kill()

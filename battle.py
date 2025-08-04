@@ -3,9 +3,12 @@ import pygame_gui
 import random
 
 from config import *
+from logger_config import logger
 
 class Battle:
     def __init__(self, game, enemy, party):
+        self.log = logger.getChild(__name__)
+
         self.game = game
         self.enemy = enemy
         self.party = party
@@ -189,7 +192,7 @@ class Battle:
         target = random.choices(valid_targets, weights=norm_weights, k=1)[0]
         self.target = target
 
-        print(f"{self.enemy.name} prepares to attack {target.name}!")
+        self.log.debug(f"{self.enemy.name} prepares to attack {target.name}!")
 
     def start_target_select(self):
         """Switch to target selection UI for the player."""
@@ -198,15 +201,15 @@ class Battle:
 
         if self.enemy.current_health > 0:
             self.target = self.enemy
-            print(f"{self.active_battler.name} is targeting {self.enemy.name} - Press Enter to confirm.")
+            self.log.debug(f"{self.active_battler.name} is targeting {self.enemy.name} - Press Enter to confirm.")
         else:
-            print("No valid targets.")
+            self.log.error("No valid targets.")
             self.next_turn()
 
     def perform_attack(self):
         """Resolve an attack on the chosen target."""
         if not self.target or self.target.current_health <= 0:
-            print("Invalid target.")
+            self.log.error("Invalid target.")
             self.target = None
             return
 
@@ -225,7 +228,7 @@ class Battle:
             hit = acc_check <= min(hit_rate + self.active_battler.acc, 255) - self.target.eva
             crit = acc_check == 0 or acc_check < self.active_battler.crit
             if hit:
-                print(f"{self.active_battler.name} hit {self.target.name}!")
+                self.log.debug(f"{self.active_battler.name} hit {self.target.name}!")
 
                 # Trigger shake/blink effect
                 self.hit_effects[self.target] = {
@@ -244,7 +247,7 @@ class Battle:
                 popup_text = str(int(dmg))
                 popup_color = (255, 255, 0) if crit else (255, 0, 0)  # yellow for crits, red otherwise
             else:
-                print(f"{self.active_battler.name} missed {self.target.name}!")
+                self.log.debug(f"{self.active_battler.name} missed {self.target.name}!")
                 popup_text = "Miss!"
                 popup_color = (200, 200, 200)
 
@@ -375,18 +378,18 @@ class Battle:
             if button == self.attack_button:
                 self.start_target_select()
             elif button == self.item_button:
-                print(f"{self.active_battler.name} chose Item")
+                self.log.debug(f"{self.active_battler.name} chose Item")
                 self.next_turn()
             elif button == self.equip_button:
-                print(f"{self.active_battler.name} chose Equip")
+                self.log.debug(f"{self.active_battler.name} chose Equip")
                 self.next_turn()
             elif button == self.run_button:
                 # if self.active_battler.lck > self.active_battler.lvl + 15:
                 if True:
-                    print(f"{self.active_battler.name} ran from battle")
+                    self.log.debug(f"{self.active_battler.name} ran from battle")
                     self.running = False
                 else:
-                    print(f"{self.active_battler.name} failed to run from battle")
+                    self.log.debug(f"{self.active_battler.name} failed to run from battle")
                     self.next_turn()
         else:
             self.next_turn()
@@ -433,9 +436,9 @@ class Battle:
             if p.current_health > 0:
                 p.exp += exp_amount
                 exp_texts.append(f"{p.name} gained {exp_amount} EXP")
-                print(f"{p.name} gained {exp_amount} EXP")
+                self.log.debug(f"{p.name} gained {exp_amount} EXP")
             else:
-                print(f"{p.name} is KO'd and gained no EXP")
+                self.log.debug(f"{p.name} is KO'd and gained no EXP")
 
         small_font = pygame.font.Font('ARCADECLASSIC.TTF', 28)
         for i, line in enumerate(exp_texts):
@@ -456,7 +459,7 @@ class Battle:
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    print("Quitting from battle run")
+                    self.log.info("Quitting from battle run")
                     self.game.quit_game()
                     return
 

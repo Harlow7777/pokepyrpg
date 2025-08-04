@@ -1,7 +1,7 @@
-import sys
 import pygame
 import pygame_gui
 
+from logger_config import logger
 from pokemon.definedenemies import EnemyEnum
 from pokemon.party import Party
 from pokemon.pokemon import Pokemon
@@ -12,6 +12,8 @@ from config import *
 
 class Game:
     def __init__(self):
+        self.log = logger.getChild(__name__)
+
         pygame.init()
         pygame.display.set_caption("Pokepy RPG")
 
@@ -71,7 +73,7 @@ class Game:
         for event in pygame.event.get():
             # if game window is closed
             if event.type == pygame.QUIT:
-                print("Quitting from game events")
+                self.log.info("Quitting from game events")
                 self.quit_game()
 
     def update(self):
@@ -119,7 +121,7 @@ class Game:
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    print("Quitting from game_over")
+                    self.log.info("Quitting from game_over")
                     self.quit_game()
 
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
@@ -154,7 +156,7 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     intro = False
-                    print("Quitting from intro screen")
+                    self.log.info("Quitting from intro screen")
                     self.quit_game()
 
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:

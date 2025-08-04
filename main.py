@@ -1,7 +1,6 @@
 import sys
 import pygame
-from game import Game  # Your Game class in its own file (optional but cleaner)
-
+from game import Game
 
 def run_game():
     pygame.init()
@@ -23,7 +22,6 @@ def run_game():
 
     pygame.quit()
     sys.exit()
-
 
 if __name__ == "__main__":
     run_game()

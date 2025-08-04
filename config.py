@@ -1,3 +1,8 @@
+import logging
+
+LOG_LEVEL = logging.DEBUG
+LOG_FILE = 'logs/pokepy_debug.logs'
+
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 480
 TILESIZE = 32
