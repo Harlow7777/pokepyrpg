@@ -21,6 +21,12 @@ class Battle:
 
         self.battle_background = pygame.image.load('./img/pokemon_battle_bg.png')
 
+        # Audio
+        self.hit_sound = pygame.mixer.Sound('audio/sounds/attack_hit.mp3')
+        self.crit_sound = pygame.mixer.Sound('audio/sounds/attack_crit.mp3')
+        self.miss_sound = pygame.mixer.Sound('audio/sounds/attack_miss.mp3')
+        self.run_sound = pygame.mixer.Sound('audio/sounds/run.mp3')
+
         # Turn order setup
         self.battlers = [self.enemy] + self.party.members
         for battler in self.battlers:
@@ -246,10 +252,17 @@ class Battle:
                 self.target.current_health = max(0, self.target.current_health)
                 popup_text = str(int(dmg))
                 popup_color = (255, 255, 0) if crit else (255, 0, 0)  # yellow for crits, red otherwise
+
+                if crit:
+                    self.crit_sound.play()
+                else:
+                    self.hit_sound.play()
             else:
                 self.log.debug(f"{self.active_battler.name} missed {self.target.name}!")
                 popup_text = "Miss!"
                 popup_color = (200, 200, 200)
+
+                self.miss_sound.play()
 
             # Determine popup position based on target sprite
             if self.target == self.enemy:
@@ -387,6 +400,8 @@ class Battle:
                 # if self.active_battler.lck > self.active_battler.lvl + 15:
                 if True:
                     self.log.debug(f"{self.active_battler.name} ran from battle")
+                    self.run_sound.play()
+                    self.game.resume_previous_music()
                     self.running = False
                 else:
                     self.log.debug(f"{self.active_battler.name} failed to run from battle")
@@ -395,6 +410,8 @@ class Battle:
             self.next_turn()
 
     def display_defeat_message(self):
+        self.game.play_music('audio/music/Game Over.mp3', fadeout_ms=FADEOUT_MS)
+
         # Clear lingering popups and effects
         self.cleanup()
         self.draw_battle_screen()
@@ -411,12 +428,23 @@ class Battle:
         self.game.screen.blit(text_surf, rect)
 
         pygame.display.update()
-        pygame.time.delay(2000)  # wait 2 seconds before ending
+        # Wait for Enter key
+        waiting = True
+        while waiting:
+            self.game.update_music()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.game.quit_game()
+                    return
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                    waiting = False
 
     def display_victory_message(self):
         # Clear lingering popups and effects
         self.cleanup()
         self.draw_battle_screen()
+
+        self.game.play_music('audio/music/Victory.mp3', fadeout_ms=FADEOUT_MS)
 
         # Create grey overlay
         overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -447,21 +475,34 @@ class Battle:
             self.game.screen.blit(exp_surf, exp_rect)
 
         pygame.display.update()
-        pygame.time.delay(2000)  # wait before returning
+
+        # Wait for Enter key
+        waiting = True
+        while waiting:
+            self.game.update_music()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.game.quit_game()
+                    return
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                    waiting = False
 
         self.running = False
         self.game.in_battle = False
+        self.game.play_music('audio/music/Main Theme.mp3', fadeout_ms=FADEOUT_MS)
 
     def run(self):
+        self.game.play_music('audio/music/Battle.mp3', fadeout_ms=FADEOUT_MS)
+
         while self.running:
+            self.game.update_music()
             time_delta = self.game.clock.tick(FPS) / 1000.0
             ms_delta = time_delta * 1000
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.log.info("Quitting from battle run")
                     self.game.quit_game()
-                    return
+                    return 'quit'
 
                 elif event.type == pygame.KEYDOWN and self.state == 'target_select':
                     if event.key == pygame.K_RETURN:

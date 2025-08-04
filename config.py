@@ -1,8 +1,13 @@
 import logging
 
+# logging
 LOG_LEVEL = logging.DEBUG
 LOG_FILE = 'logs/pokepy_debug.logs'
 
+# audio
+FADEOUT_MS = 150
+
+# display
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 480
 TILESIZE = 32

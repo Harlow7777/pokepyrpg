@@ -1,6 +1,8 @@
 import sys
 import pygame
+
 from game import Game
+from config import *
 
 def run_game():
     pygame.init()
@@ -11,6 +13,10 @@ def run_game():
         g = Game()
 
         g.intro_screen()
+
+        # Switch to main theme
+        g.play_music('audio/music/Main Theme.mp3', fadeout_ms=FADEOUT_MS)
+
         g.new()
 
         while g.running:

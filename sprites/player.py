@@ -107,6 +107,7 @@ class Player(pygame.sprite.Sprite):
             result = battle.run()
             battle.cleanup()
             self.log.debug("Battle result " + str(result))
+
             if result == "victory":
                 # Survived — go back to map and remove enemy sprite
                 enemy.kill()
