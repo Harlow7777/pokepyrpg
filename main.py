@@ -17,10 +17,10 @@ def run_game():
         while g.running:
             g.main()
             g.game_over()
-        print("Broken out of g.running")
+
         if g.quit:
             running = g.running
-    print("broken out of running")
+
     pygame.quit()
     sys.exit()
 

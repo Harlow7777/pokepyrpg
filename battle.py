@@ -393,9 +393,7 @@ class Battle:
 
     def display_defeat_message(self):
         # Clear lingering popups and effects
-        self.damage_popups.clear()
-        self.hit_effects.clear()
-        self.attack_animations.clear()
+        self.cleanup()
         self.draw_battle_screen()
 
         # Create grey overlay
@@ -414,9 +412,7 @@ class Battle:
 
     def display_victory_message(self):
         # Clear lingering popups and effects
-        self.damage_popups.clear()
-        self.hit_effects.clear()
-        self.attack_animations.clear()
+        self.cleanup()
         self.draw_battle_screen()
 
         # Create grey overlay
@@ -460,7 +456,9 @@ class Battle:
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    print("Quitting from battle run")
                     self.game.quit_game()
+                    return
 
                 elif event.type == pygame.KEYDOWN and self.state == 'target_select':
                     if event.key == pygame.K_RETURN:
@@ -522,7 +520,8 @@ class Battle:
                 self.display_victory_message()
                 return 'victory'
 
-        return 'escaped'
+        self.cleanup()
+        return 'escape'
 
     def cleanup(self):
         """Ensure no lingering UI elements or battle state."""
