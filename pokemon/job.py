@@ -1,7 +1,8 @@
 class Job:
-    def __init__(self, name, hp, vit, str_, acc, eva, agl, int_, lck, acc_growth, mdef, mdef_growth):
+    def __init__(self, name, hp, exp, vit, str_, acc, eva, agl, int_, lck, acc_growth, mdef, mdef_growth):
         self.name = name
         self.hp = hp
+        self.exp = exp
         self.vit = vit
         self.str = str_
         self.acc = acc
@@ -16,6 +17,7 @@ class Job:
     def get_base_stats(self):
         return {
             "HP": self.hp,
+            "EXP": self.exp,
             "VIT": self.vit,
             "STR": self.str,
             "ACC": self.acc,

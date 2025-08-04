@@ -4,7 +4,7 @@ import random
 from config import *
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, game, name, lvl, job, x, y):
+    def __init__(self, game, name, job, x, y):
         self.job = job            # Instance of Job
         self.base_stats = job.get_base_stats()  # Dict of base stats
         self.stats = self.base_stats
@@ -13,9 +13,9 @@ class Enemy(pygame.sprite.Sprite):
         self.acc = self.stats['ACC']
         self.eva = self.stats['EVA']
         self.lck = self.stats['LCK']
+        self.exp = self.stats['EXP']
         self.str = 1000
         self.crit = 0
-        self.lvl = lvl
         self.current_health = self.stats['HP']
         self.health_capacity = self.stats['HP']
         self.game = game

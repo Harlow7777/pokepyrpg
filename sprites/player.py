@@ -1,5 +1,7 @@
 import math
 import pygame
+
+from battle import Battle
 from config import *
 
 class Player(pygame.sprite.Sprite):
@@ -96,9 +98,28 @@ class Player(pygame.sprite.Sprite):
         hits = pygame.sprite.spritecollide(self, self.game.enemies, False)
         if hits:
             self.game.in_battle = True
-            self.game.encounter(hits[0])
-            self.game.in_battle = False
-            self.game.post_battle_cooldown = 2000
+            enemy = hits[0]
+
+            # Run battle
+            battle = Battle(self.game, enemy, self.game.party)
+            result = battle.run()
+            battle.cleanup()
+
+            if result == "victory":
+                # Survived — go back to map and remove enemy sprite
+                enemy.kill()
+                self.game.in_battle = False
+                self.game.draw()
+                return
+            elif result == "escape":
+                self.game.in_battle = False
+                self.game.post_battle_cooldown = 2000
+                self.game.draw()
+                return
+            elif result == "defeat":
+                # Player was defeated — trigger game over
+                self.game.playing = False
+                return
 
     def collide_blocks(self, direction):
         # check and handle collisions

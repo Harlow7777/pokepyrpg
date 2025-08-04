@@ -10,8 +10,11 @@ class Battle:
         self.enemy = enemy
         self.party = party
 
-        self.manager = self.game.manager
-        self.manager.clear_and_reset()  # Clear previous UI
+        self.manager = pygame_gui.UIManager(
+            (SCREEN_WIDTH, SCREEN_HEIGHT),
+            theme_path='ui_style.json'
+        )
+        self.manager.clear_and_reset()
 
         self.battle_background = pygame.image.load('./img/pokemon_battle_bg.png')
 
@@ -409,6 +412,47 @@ class Battle:
         pygame.display.update()
         pygame.time.delay(2000)  # wait 2 seconds before ending
 
+    def display_victory_message(self):
+        # Clear lingering popups and effects
+        self.damage_popups.clear()
+        self.hit_effects.clear()
+        self.attack_animations.clear()
+        self.draw_battle_screen()
+
+        # Create grey overlay
+        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        overlay.set_alpha(180)  # transparency
+        overlay.fill((50, 50, 50))
+        self.game.screen.blit(overlay, (0, 0))
+
+        font = pygame.font.Font('ARCADECLASSIC.TTF', 72)
+        text_surf = font.render("Victory!", True, (255, 215, 0))  # gold color
+        rect = text_surf.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 40))
+        self.game.screen.blit(text_surf, rect)
+
+        # Award EXP to surviving party members
+        exp_texts = []
+        exp_amount = getattr(self.enemy, "exp")
+        for p in self.party.members:
+            if p.current_health > 0:
+                p.exp += exp_amount
+                exp_texts.append(f"{p.name} gained {exp_amount} EXP")
+                print(f"{p.name} gained {exp_amount} EXP")
+            else:
+                print(f"{p.name} is KO'd and gained no EXP")
+
+        small_font = pygame.font.Font('ARCADECLASSIC.TTF', 28)
+        for i, line in enumerate(exp_texts):
+            exp_surf = small_font.render(line, True, (255, 255, 255))
+            exp_rect = exp_surf.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 40 + i * 40))
+            self.game.screen.blit(exp_surf, exp_rect)
+
+        pygame.display.update()
+        pygame.time.delay(2000)  # wait before returning
+
+        self.running = False
+        self.game.in_battle = False
+
     def run(self):
         while self.running:
             time_delta = self.game.clock.tick(FPS) / 1000.0
@@ -416,8 +460,7 @@ class Battle:
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.game.running = False
-                    self.running = False
+                    self.game.quit_game()
 
                 elif event.type == pygame.KEYDOWN and self.state == 'target_select':
                     if event.key == pygame.K_RETURN:
@@ -433,8 +476,6 @@ class Battle:
                 self.enemy_turn_timer -= ms_delta
                 if self.enemy_turn_timer <= 0:
                     self.perform_attack()
-
-            self.manager.update(time_delta)
 
             # Update damage popups
             for popup in self.damage_popups[:]:
@@ -466,13 +507,26 @@ class Battle:
                 if anim["timer"] <= 0:
                     del self.attack_animations[battler]
 
+            self.manager.update(time_delta)
             self.update_name_highlight()
             self.draw_battle_screen()
+            self.update_button_states()
 
             # Check defeat condition
             if all(p.current_health <= 0 for p in self.party.members):
-                self.state = 'defeat'
-                self.update_button_states()
                 self.display_defeat_message()
-                self.game.game_over()
-                return
+                return 'defeat'
+
+            # Check victory condition
+            if self.enemy.current_health <= 0:
+                self.display_victory_message()
+                return 'victory'
+
+        return 'escaped'
+
+    def cleanup(self):
+        """Ensure no lingering UI elements or battle state."""
+        self.manager.clear_and_reset()
+        self.damage_popups.clear()
+        self.hit_effects.clear()
+        self.attack_animations.clear()
