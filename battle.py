@@ -245,11 +245,13 @@ class Battle:
                 }
 
                 # Calculate damage
-                dmg = self.active_battler.str / 2
+                dmg = self.active_battler.str // 2
                 if crit:
                     dmg *= 2
+                print("Doing " + str(dmg) + " dmg")
                 self.target.current_health -= dmg
                 self.target.current_health = max(0, self.target.current_health)
+                print("New current_health " + str(self.target.current_health))
                 popup_text = str(int(dmg))
                 popup_color = (255, 255, 0) if crit else (255, 0, 0)  # yellow for crits, red otherwise
 
@@ -401,7 +403,7 @@ class Battle:
                 if True:
                     self.log.debug(f"{self.active_battler.name} ran from battle")
                     self.run_sound.play()
-                    self.game.resume_previous_music()
+                    self.game.audio.resume_previous_music()
                     self.running = False
                 else:
                     self.log.debug(f"{self.active_battler.name} failed to run from battle")
@@ -410,7 +412,7 @@ class Battle:
             self.next_turn()
 
     def display_defeat_message(self):
-        self.game.play_music('audio/music/Game Over.mp3', fadeout_ms=FADEOUT_MS)
+        self.game.audio.play_music('audio/music/Game Over.mp3', fadeout_ms=FADEOUT_MS)
 
         # Clear lingering popups and effects
         self.cleanup()
@@ -431,7 +433,7 @@ class Battle:
         # Wait for Enter key
         waiting = True
         while waiting:
-            self.game.update_music()
+            self.game.audio.update_music()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.game.quit_game()
@@ -444,7 +446,7 @@ class Battle:
         self.cleanup()
         self.draw_battle_screen()
 
-        self.game.play_music('audio/music/Victory.mp3', fadeout_ms=FADEOUT_MS)
+        self.game.audio.play_music('audio/music/Victory.mp3', fadeout_ms=FADEOUT_MS)
 
         # Create grey overlay
         overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -479,7 +481,7 @@ class Battle:
         # Wait for Enter key
         waiting = True
         while waiting:
-            self.game.update_music()
+            self.game.audio.update_music()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.game.quit_game()
@@ -489,13 +491,13 @@ class Battle:
 
         self.running = False
         self.game.in_battle = False
-        self.game.play_music('audio/music/Main Theme.mp3', fadeout_ms=FADEOUT_MS)
+        self.game.audio.play_music('audio/music/Main Theme.mp3', fadeout_ms=FADEOUT_MS)
 
     def run(self):
-        self.game.play_music('audio/music/Battle.mp3', fadeout_ms=FADEOUT_MS)
+        self.game.audio.play_music('audio/music/Battle.mp3', fadeout_ms=FADEOUT_MS)
 
         while self.running:
-            self.game.update_music()
+            self.game.audio.update_music()
             time_delta = self.game.clock.tick(FPS) / 1000.0
             ms_delta = time_delta * 1000
 

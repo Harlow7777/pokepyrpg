@@ -8,6 +8,7 @@ from pokemon.definedenemies import EnemyEnum
 from pokemon.party import Party
 from pokemon.pokemon import Pokemon
 from pokemon.definedjobs import JobEnum
+from audio.audio_manager import AudioManager
 
 from sprites import *
 from config import *
@@ -19,12 +20,16 @@ class Game:
         pygame.init()
         pygame.display.set_caption("Pokepy RPG")
 
+        self.audio = AudioManager()
+
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.background = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.clock = pygame.time.Clock() # frame rate
         self.running = True
+        self.paused = False
+        self.pause_menu = None
         self.quit = False
-        self.font = pygame.font.Font('ARCADECLASSIC.TTF', 32)
+        self.font = pygame.font.Font('C&CRedAlert.ttf', 72)
 
         self.manager = pygame_gui.UIManager((SCREEN_WIDTH, SCREEN_HEIGHT), theme_path="ui_style.json")
 
@@ -32,8 +37,8 @@ class Game:
         self.terrain_spritesheet = Spritesheet('img/terrain.png')
         self.enemy_spritesheet = Spritesheet('img/enemy.png')
 
-        self.intro_background = pygame.image.load('./img/introbackground.png')
-        self.gameover_background = pygame.image.load('./img/gameover.png')
+        self.intro_background = pygame.image.load('img/introbackground.png')
+        self.gameover_background = pygame.image.load('img/gameover.png')
 
         #Generate jobs
         self.jobs = []
@@ -41,55 +46,82 @@ class Game:
         self.in_battle = False
         self.post_battle_cooldown = 0
 
-    def play_music(self, track_path, loop=True, fadeout_ms=0, volume=1.0):
-        """
-        Play a music track with optional fadeout, loop, and volume control.
-        Will not reload the same track if it's already playing.
-        """
-        self.log.debug("Playing " + str(track_path))
-        # Avoid reloading the same track
-        if getattr(self, "_current_track", None) == track_path:
-            self.log.error("_current_track equals the track_path")
-            return
+    def toggle_pause_menu(self):
+        if not self.paused:
+            self.log.debug("Pausing game")
+            self.audio.play_music('audio/music/Menu Screen.mp3')
+            self.paused = True
 
-        # Save the current track as the "previous" before switching
-        if hasattr(self, "_current_track") and self._current_track != track_path:
-            self._previous_track = self._current_track
+            self.pause_menu = pygame_gui.elements.UIPanel(
+                relative_rect=pygame.Rect((0, 0), (SCREEN_WIDTH, SCREEN_HEIGHT)),
+                manager=self.manager,
+                object_id="#pause_menu"
+            )
 
-        # If fadeout is requested, do it and schedule the new track
-        if fadeout_ms > 0 and pygame.mixer.music.get_busy():
-            self.log.debug("Fading out previous track")
-            pygame.mixer.music.fadeout(fadeout_ms)
+            menu_options = ["Items", "Equip", "Save", "Back"]
+            for idx, label in enumerate(menu_options):
+                pygame_gui.elements.UIButton(
+                    relative_rect=pygame.Rect((30, 30 + idx * 45), (150, 40)),
+                    text=label,
+                    manager=self.manager,
+                    container=self.pause_menu,
+                    object_id="#menu_button"
+                )
 
-            # Store track info so we can start it later in update_music()
-            self._pending_track = (track_path, loop, volume)
-            self._fade_complete_time = pygame.time.get_ticks() + fadeout_ms
-            return
+            # Constants for layout
+            panel_width = 400
+            panel_height = 100
+            panel_padding = 5
+            start_x = 220
+            start_y = 5
 
-        # Otherwise, just start immediately
-        self._start_music(track_path, loop, volume)
+            # Loop through each member of the party
+            for index, member in enumerate(self.party.members):
+                offset_y = start_y + index * (panel_height + panel_padding)
 
-    def _start_music(self, track_path, loop, volume):
-        """Helper to actually load and play a track."""
-        pygame.mixer.music.load(track_path)
-        pygame.mixer.music.set_volume(volume)
-        pygame.mixer.music.play(-1 if loop else 0)
-        self._current_track = track_path
-        self._pending_track = None
-        self._fade_complete_time = None
+                # Create a panel for each party member
+                member_panel = pygame_gui.elements.UIPanel(
+                    relative_rect=pygame.Rect((start_x, offset_y), (panel_width, panel_height)),
+                    manager=self.manager,
+                    container=self.pause_menu,
+                    object_id=f"#member_panel_{index}"
+                )
 
-    def update_music(self):
-        """Call this in your main game loop to handle delayed music changes."""
-        if hasattr(self, "_pending_track") and self._pending_track:
-            if pygame.time.get_ticks() >= self._fade_complete_time:
-                track_path, loop, volume = self._pending_track
-                self._start_music(track_path, loop, volume)
+                # --- Sprite: UIImage on the left ---
+                sprite_y = (panel_height - member.height) // 2  # Center vertically
 
-    def resume_previous_music(self, fadeout_ms=0):
-        """Resume the previous track if available."""
-        if hasattr(self, "_previous_track"):
-            print("Resuming _previous_track " + str(self._previous_track))
-            self.play_music(self._previous_track, fadeout_ms=fadeout_ms)
+                pygame_gui.elements.UIImage(
+                    relative_rect=pygame.Rect((50, sprite_y), (member.width, member.height)),
+                    image_surface=member.image,
+                    manager=self.manager,
+                    container=member_panel
+                )
+
+                # --- Stats: UILabel on the right ---
+                stats_text = (
+                    f"Name: {member.name}\n"
+                    f"Job: {member.job.name}\n"
+                    f"Level: {member.lvl}\n"
+                    f"HP: {member.current_health} / {member.health_capacity}\n"
+                )
+
+                text_box_x = member.width + 100  # adjust to give space beside sprite
+                text_box_width = panel_width
+
+                pygame_gui.elements.UITextBox(
+                    html_text=stats_text.replace("\n", "<br>"),
+                    relative_rect=pygame.Rect((text_box_x, 0), (text_box_width, panel_height)),
+                    manager=self.manager,
+                    container=member_panel,
+                    object_id="#stats_text"
+                )
+        else:
+            self.log.debug("Unpausing game")
+            self.audio.resume_previous_music()
+            self.paused = False
+            if self.pause_menu:
+                self.pause_menu.kill()
+                self.pause_menu = None
 
     def create_tilemap(self):
         for row_index, row in enumerate(tilemap):
@@ -127,18 +159,32 @@ class Game:
             if event.type == pygame.QUIT:
                 self.quit_game()
 
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.toggle_pause_menu()
+
+            if event.type == pygame_gui.UI_BUTTON_PRESSED:
+                if self.paused and event.ui_element.text == "Resume":
+                    self.toggle_pause_menu()
+
+            self.manager.process_events(event)
+
     def update(self):
         # game loop updates
-        self.all_sprites.update()
-        self.update_music()
-        if self.post_battle_cooldown > 0:
-            self.post_battle_cooldown -= self.clock.get_time()
+        time_delta = self.clock.tick(FPS) / 1000.0
+        self.manager.update(time_delta)
+
+        if not self.paused:
+            self.all_sprites.update()
+            self.audio.update_music()
+            if self.post_battle_cooldown > 0:
+                self.post_battle_cooldown -= self.clock.get_time()
 
     def draw(self):
         # game loop draw
         self.screen.fill(BLACK) # clear screen
         self.all_sprites.draw(self.screen)
-        self.clock.tick(FPS)
+        self.manager.draw_ui(self.screen)
         pygame.display.update()
 
     def main(self):
@@ -190,7 +236,7 @@ class Game:
             pygame.display.update()
 
     def intro_screen(self):
-        self.play_music('audio/music/Prelude.mp3')
+        self.audio.play_music('audio/music/Prelude.mp3')
 
         intro = True
         self.manager.clear_and_reset()

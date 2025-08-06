@@ -3,10 +3,61 @@
   {
     "font":
     {
-      "name": "Arcade Classic",
+      "name": "C&C Red Alert",
       "size": 32,
-      "regular_path": "ARCADECLASSIC.TTF"
+      "regular_path": "C&CRedAlert.ttf"
     }
+  },
+  "#pause_menu":
+  {
+    "font":
+    {
+      "name": "C&C Red Alert",
+      "size": 24
+    },
+    "colours": {
+      "normal_bg": "#0020C0",
+      "dark_bg": "#000090",
+      "normal_border": "#FFFFFF",
+      "hovered_border": "#FFCC00"
+    },
+    "border_width": 3,
+    "padding": {
+      "left": 10,
+      "right": 10,
+      "top": 10,
+      "bottom": 10
+    }
+  },
+  "#stats_text": {
+    "colours": {
+      "normal_border": "#00000000",
+      "dark_bg": "#00000000"
+    },
+    "font": {
+      "name": "C&C Red Alert",
+      "size": 12,
+      "regular_path": "C&CRedAlert.ttf"
+    },
+    "misc": {
+      "border_width": 0,
+      "scroll_bar_width": 0,
+      "padding": "5,5"
+    }
+  },
+  "menu_button": {
+    "font":
+    {
+      "name": "C&C Red Alert",
+      "size": 20
+    },
+    "colours": {
+      "normal_bg": "#001080",
+      "normal_border": "#FFFFFF",
+      "hovered_bg": "#0030E0",
+      "hovered_border": "#FFFF00"
+    },
+    "border_width": 2
   },
   "button":
   {
@@ -18,9 +69,9 @@
          },
     "font":
         {
-          "name": "Arcade Classic",
+          "name": "C&C Red Alert",
           "size": 32,
-          "regular_path": "ARCADECLASSIC.TTF"
+          "regular_path": "C&CRedAlert.ttf"
         },
     "misc":
          {
@@ -33,13 +84,19 @@
   {
     "font":
     {
-      "name": "Arcade Classic",
+      "name": "C&C Red Alert",
       "size": 32,
-      "regular_path": "ARCADECLASSIC.TTF"
+      "regular_path": "C&CRedAlert.ttf"
     }
   },
   "screen_space_health_bar":
   {
+    "font":
+    {
+      "name": "C&C Red Alert",
+      "size": 32,
+      "regular_path": "C&CRedAlert.ttf"
+    },
     "colours":
     {
       "normal_text": "White"
